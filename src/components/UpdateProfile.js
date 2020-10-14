@@ -17,6 +17,7 @@ import Grid from "@material-ui/core/Grid";
 import TextField from "@material-ui/core/TextField";
 
 import { auth } from "firebase";
+
 const useStyles = makeStyles((theme) => ({
   paper: {
     marginTop: theme.spacing(8),
@@ -37,7 +38,7 @@ const useStyles = makeStyles((theme) => ({
   },
 
   root: {
-    maxWidth: 345,
+    maxWidth: 444,
   },
   media: {
     height: 240,
