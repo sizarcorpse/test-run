@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useHistory } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+
+import app from "../firebase";
 
 import { makeStyles } from "@material-ui/core/styles";
 import Card from "@material-ui/core/Card";
@@ -13,6 +15,7 @@ import Typography from "@material-ui/core/Typography";
 import Container from "@material-ui/core/Container";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import { auth } from "firebase";
+import { CodeSharp } from "@material-ui/icons";
 const useStyles = makeStyles((theme) => ({
   paper: {
     marginTop: theme.spacing(8),
@@ -34,6 +37,7 @@ const useStyles = makeStyles((theme) => ({
 
   root: {
     maxWidth: 444,
+    minWidth: 396,
   },
   media: {
     height: 240,
@@ -42,6 +46,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Dashboard() {
   const { currentUser, logout } = useAuth();
+  const [profile, setProfile] = useState({});
   const history = useHistory();
   const classes = useStyles();
 
@@ -56,6 +61,29 @@ export default function Dashboard() {
       setError("Something went worng");
     }
   }
+
+  useEffect(() => {
+    me();
+    console.log(currentUser);
+  }, []);
+
+  const me = async () => {
+    const db = app.firestore();
+
+    await db
+      .collection("users")
+      .where("userID", "==", currentUser.uid)
+      .limit(1)
+      .get()
+      .then((data) => {
+        let medata = {};
+        data.forEach((doc) => {
+          medata.fname = doc.data().fname;
+          medata.lname = doc.data().lname;
+        });
+        setProfile(medata);
+      });
+  };
 
   return (
     <Container component="main" maxWidth="xs">
@@ -84,16 +112,21 @@ export default function Dashboard() {
             </CardContent>
             <CardMedia
               className={classes.media}
-              image="https://source.unsplash.com/WLUHO9A_xik/1600x900"
+              image={currentUser.photoURL}
               title="Contemplative Reptile"
             />
             <CardContent>
               <Typography gutterBottom variant="h5" component="h2">
                 {currentUser.email}
               </Typography>
+              <Typography gutterBottom variant="h5" component="h2">
+                {currentUser.displayName}
+              </Typography>
               <Typography variant="body2" color="textSecondary" component="p">
-                Lizards are a widespread group of squamate reptiles, with over
-                6,000 species, ranging across all continents except Antarctica
+                {profile.fname}
+              </Typography>
+              <Typography variant="body2" color="textSecondary" component="p">
+                {profile.lname}
               </Typography>
             </CardContent>
           </CardActionArea>

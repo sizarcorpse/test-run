@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useHistory } from "react-router-dom";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
+import app, { auth } from "../firebase";
 import { useAuth } from "../contexts/AuthContext";
 
 import Avatar from "@material-ui/core/Avatar";
@@ -28,6 +29,9 @@ import InputAdornment from "@material-ui/core/InputAdornment";
 import EmailIcon from "@material-ui/icons/Email";
 import VpnKeyIcon from "@material-ui/icons/VpnKey";
 import Fade from "@material-ui/core/Fade";
+
+import AlternateEmailIcon from "@material-ui/icons/AlternateEmail";
+import FacebookIcon from "@material-ui/icons/Facebook";
 const useStyles = makeStyles((theme) => ({
   paper: {
     marginTop: theme.spacing(8),
@@ -63,7 +67,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Login() {
   const classes = useStyles();
-  const { login } = useAuth();
+  const { login, signInWithGoogle } = useAuth();
   const history = useHistory();
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
@@ -103,6 +107,11 @@ export default function Login() {
     setLoading(false);
   };
 
+  const google = async () => {
+    await signInWithGoogle();
+    history.push("/");
+  };
+
   return (
     <Container component="main" maxWidth="xs">
       <CssBaseline />
@@ -121,6 +130,51 @@ export default function Login() {
               </Typography>
             }
           />
+          <CardContent
+            style={{
+              paddingTop: 0,
+              paddingBottom: 0,
+              margin: 0,
+            }}
+          >
+            <Button
+              type="submit"
+              fullWidth
+              variant="outlined"
+              color="primary"
+              className={classes.submit}
+              disabled={loading}
+              onClick={google}
+              startIcon={<AlternateEmailIcon />}
+              size="small"
+              style={{
+                padding: "3px",
+
+                marginTop: "5px",
+                marginBottom: "10px",
+              }}
+            >
+              Google Signin
+            </Button>
+
+            <Button
+              type="submit"
+              fullWidth
+              variant="outlined"
+              color="primary"
+              className={classes.submit}
+              disabled
+              size="small"
+              style={{
+                padding: "3px",
+                marginTop: 0,
+              }}
+              startIcon={<FacebookIcon />}
+            >
+              Facebook Signin
+            </Button>
+          </CardContent>
+
           <Formik
             initialValues={initialValues}
             validationSchema={validationSchema}
@@ -249,6 +303,7 @@ export default function Login() {
                     >
                       Sign In
                     </Button>
+
                     <Grid container>
                       <Grid item xs>
                         <Link

@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Link, useHistory } from "react-router-dom";
 
+import app, { auth } from "../firebase";
+
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 
@@ -113,14 +115,27 @@ export default function SignUp() {
     try {
       setSignupError("");
       setLoading(true);
-      await signup(email, password);
-      setSignupSuccess(
-        "Account has been successfully🥳 created✨🎆. Redirected🚀 to home🏰 page"
-      );
-      history.push("/");
+
+      const db = app.firestore();
+
+      db.doc(`/users/${username}`)
+        .get()
+        .then(async (doc) => {
+          if (doc.exists) {
+            console.log("DOCCC", doc);
+            return setSignupError("Username Already Exits");
+          } else {
+            await signup(firstName, lastName, username, email, password);
+            setSignupSuccess(
+              "Account has been successfully🥳 created✨🎆. Redirected🚀 to home🏰 page"
+            );
+            history.push("/");
+          }
+        });
     } catch {
       setSignupError("Something went wrong🤪❌❌❗. Please try again😇👻.");
     }
+
     setLoading(false);
   };
 
@@ -142,6 +157,7 @@ export default function SignUp() {
               </Typography>
             }
           />
+
           <Formik
             initialValues={initialValues}
             validationSchema={validationSchema}
@@ -190,7 +206,7 @@ export default function SignUp() {
                         >
                           <TextField
                             InputProps={{
-                              startAdornment: touched.username ? (
+                              startAdornment: touched.firstName ? (
                                 <InputAdornment position="start">
                                   <FaceIcon />
                                 </InputAdornment>
@@ -225,7 +241,7 @@ export default function SignUp() {
                         >
                           <TextField
                             InputProps={{
-                              startAdornment: touched.username ? (
+                              startAdornment: touched.lastName ? (
                                 <InputAdornment position="start">
                                   <FaceIcon />
                                 </InputAdornment>

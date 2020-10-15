@@ -1,7 +1,7 @@
 import React, { useContext, createContext, useState, useEffect } from "react";
 import Login from "../components/Login";
 
-import { auth } from "../firebase";
+import app, { auth, provider } from "../firebase";
 
 const AuthContext = createContext();
 
@@ -12,9 +12,49 @@ export function useAuth() {
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentuser] = useState();
   const [loading, setLoading] = useState(true);
+  const db = app.firestore();
 
-  function signup(email, password) {
-    return auth.createUserWithEmailAndPassword(email, password);
+  function signInWithGoogle() {
+    let userID;
+
+    return app
+      .auth()
+      .signInWithPopup(provider)
+      .then((data) => {
+        userID = data.user.uid;
+
+        const userCredentials = {
+          fname: data.user.displayName.split(" ")[0],
+          lname: data.user.displayName.split(" ")[1],
+          username:
+            data.user.displayName.split(" ")[0] +
+            data.user.displayName.split(" ")[1],
+          email: data.user.email,
+          userID,
+        };
+        db.doc(`users/${userID}`).set(userCredentials);
+      });
+  }
+
+  function signup(firstName, lastName, username, email, password) {
+    let userID;
+    return auth.createUserWithEmailAndPassword(email, password).then((data) => {
+      data.user
+        .updateProfile({
+          displayName: username,
+        })
+        .then(() => {
+          userID = data.user.uid;
+          const userCredentials = {
+            fname: firstName,
+            lname: lastName,
+            username: username,
+            email: email,
+            userID,
+          };
+          db.doc(`users/${userID}`).set(userCredentials);
+        });
+    });
   }
 
   useEffect(() => {
@@ -30,6 +70,7 @@ export function AuthProvider({ children }) {
     return auth.signInWithEmailAndPassword(email, password);
   }
 
+  //
   function resetPassword(email) {
     return auth.sendPasswordResetEmail(email);
   }
@@ -40,6 +81,10 @@ export function AuthProvider({ children }) {
 
   function updatePassword(password) {
     return currentUser.updatePassword(password);
+  }
+
+  function updateDisplayName(username) {
+    return currentUser.updateProfile({ displayName: username });
   }
 
   function logout() {
@@ -54,6 +99,8 @@ export function AuthProvider({ children }) {
     resetPassword,
     updateEmail,
     updatePassword,
+    signInWithGoogle,
+    updateDisplayName,
   };
 
   return (
